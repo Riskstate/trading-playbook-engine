@@ -1,0 +1,46 @@
+{
+  "name": "@riskstate/trading-playbook-engine",
+  "version": "0.1.0",
+  "description": "Typed client for the RiskState Trading Playbook Engine — a registry of locked crypto trading setups and which fire now for BTC/USD and ETH/USD, each gated by structure + risk. One of three composable RiskState engines (the strategist). Public, no key.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./fixtures/sample.json": "./fixtures/sample.json"
+  },
+  "files": ["dist", "fixtures", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "crypto",
+    "bitcoin",
+    "ethereum",
+    "trading",
+    "trading-bot",
+    "trading-strategy",
+    "playbook",
+    "risk-management",
+    "ai-agents",
+    "defi",
+    "riskstate"
+  ],
+  "homepage": "https://riskstate.ai/docs/playbook-engine",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likidodefi/trading-playbook-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/likidodefi/trading-playbook-engine/issues"
+  },
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

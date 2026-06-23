@@ -1,0 +1,91 @@
+{
+  "ok": true,
+  "schema": "playbook_view_v1",
+  "source": "live",
+  "count": 3,
+  "playbooks": [
+    {
+      "id": "btc-cycle-bottom-accumulate",
+      "name": "BTC Cycle-Bottom Accumulation",
+      "version": "1.0",
+      "class": "reversal",
+      "side": "long",
+      "asset": "BTC",
+      "status": "active",
+      "thesis": "Deep on-chain undervaluation (MVRV < 1) — scale into generational lows while the navigator marks a cycle bottom.",
+      "priority": 1,
+      "horizon_days": 120,
+      "cooldown_hours": 168,
+      "sizing": { "fraction_of_api_max": 1.0, "scale_in": { "tranches": 3, "spacing_pct": [0, 8, 15] } },
+      "exits": {
+        "type": "structural",
+        "stop": { "structural": { "ref": "200W MA" }, "fallback_pct": 25 },
+        "targets": [
+          { "structural": { "ref": "realized price" }, "fallback_rr": 3, "exit_pct": 50, "label": "realized" },
+          { "label": "prior ATH", "fallback_rr": 5, "exit_pct": 50 }
+        ]
+      }
+    },
+    {
+      "id": "btc-extreme-fear-bounce",
+      "name": "BTC Extreme-Fear Bounce",
+      "version": "1.1",
+      "class": "mean-reversion",
+      "side": "long",
+      "asset": "BTC",
+      "status": "active",
+      "thesis": "Fear & Greed ≤ 20 with the macro gate clear — buy capitulation for a 1-4 week bounce.",
+      "priority": 2,
+      "horizon_days": 21,
+      "cooldown_hours": 72,
+      "sizing": { "fraction_of_api_max": 0.6, "scale_in": { "tranches": 2, "spacing_pct": [0, 5] } },
+      "exits": {
+        "type": "hybrid",
+        "stop": { "structural": { "ref": "breakdown trigger" }, "fallback_pct": 8 },
+        "targets": [{ "fallback_rr": 2, "exit_pct": 100, "label": "R2" }]
+      }
+    },
+    {
+      "id": "btc-range-high-fade",
+      "name": "BTC Range-High Fade",
+      "version": "1.0",
+      "class": "fade",
+      "side": "short",
+      "asset": "BTC",
+      "status": "active",
+      "thesis": "Failed breakout inside a confirmed range — fade the range high back toward the mid.",
+      "priority": 3,
+      "horizon_days": 7,
+      "cooldown_hours": 48,
+      "sizing": { "fraction_of_api_max": 0.4 },
+      "exits": {
+        "type": "structural",
+        "stop": { "structural": { "ref": "range high" }, "fallback_pct": 4 },
+        "targets": [{ "structural": { "ref": "range mid" }, "fallback_rr": 2, "exit_pct": 100, "label": "range mid" }]
+      }
+    }
+  ],
+  "firing": {
+    "BTC": [
+      {
+        "playbook_id": "btc-extreme-fear-bounce",
+        "would_fire": true,
+        "structure_blocked": false,
+        "suppressed": false,
+        "structure_gate": { "vote": "ALIGN", "reason": "Extreme Fear Reversal firing, regime gate PASS (navigator: BUYABLE FEAR)" },
+        "gate_status": "ALLOW",
+        "size_pct_nav": 10.5
+      },
+      {
+        "playbook_id": "btc-range-high-fade",
+        "would_fire": false,
+        "structure_blocked": false,
+        "suppressed": true,
+        "structure_gate": { "vote": "NEUTRAL", "reason": "no failed-breakout event on the structural map" },
+        "gate_status": null,
+        "size_pct_nav": null
+      }
+    ],
+    "ETH": []
+  }
+}
