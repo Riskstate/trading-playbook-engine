@@ -5,10 +5,19 @@
 // exposes strategy IP only — no positions, NAV, or dollar amounts.
 
 export type Asset = "BTC" | "ETH";
-export type Side = "long" | "short";
+/** Setup direction. LONG/SHORT open exposure; TRIM is a defensive reduce; DCA a
+ *  phased accumulate. (The API returns these upper-cased.) */
+export type Side = "LONG" | "SHORT" | "TRIM" | "DCA";
+
+/** Lifecycle status. Only `draft`/`live` specs are evaluated and returned;
+ *  `paused`/`retired` are excluded. The public viewer shows `draft` as "tracked". */
+export type PlaybookStatus = "draft" | "live" | "paused" | "retired";
 
 /** Navigator (Structure Engine) vote on a firing setup. */
 export type StructureVote = "ALIGN" | "NEUTRAL" | "CONFLICT";
+
+/** RiskState risk-gate verdict on a firing setup. */
+export type GateStatus = "ALLOW" | "RESIZE" | "BLOCK" | "INDETERMINATE";
 
 export interface ScaleIn {
   tranches: number;
@@ -53,7 +62,7 @@ export interface PlaybookDefinition {
   class?: string;
   side?: Side;
   asset?: Asset;
-  status?: string;
+  status?: PlaybookStatus;
   thesis?: string;
   priority?: number;
   horizon_days?: number;
@@ -72,8 +81,9 @@ export interface FiringResult {
   /** Suppressed by resolution (e.g. a higher-priority setup won). */
   suppressed: boolean;
   structure_gate: { vote: StructureVote | null; reason: string | null };
-  /** Risk-gate verdict, e.g. "ALLOW" | "RESIZE". null if not evaluated. */
-  gate_status: string | null;
+  /** Risk-gate verdict. null if not evaluated. A setup can be firing yet gate-blocked —
+   *  performance is tracked both with and without the gate. */
+  gate_status: GateStatus | null;
   /** Proposed conviction as a % of NAV — relative only, never a dollar figure. */
   size_pct_nav: number | null;
 }
@@ -82,7 +92,11 @@ export interface PlaybookResponse {
   ok: boolean;
   schema: "playbook_view_v1";
   source: "live" | "unavailable";
+  /** Number of ACTIVE playbooks (paused/retired excluded). */
   count: number;
+  /** ISO timestamp of the upstream daemon evaluation — shared with the cockpit feed so
+   *  the two surfaces stay in sync. Present on a live response. */
+  evaluated_at?: string;
   playbooks: PlaybookDefinition[];
   firing: { BTC: FiringResult[]; ETH: FiringResult[] };
 }
