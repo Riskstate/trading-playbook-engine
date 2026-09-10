@@ -72,6 +72,41 @@ export interface PlaybookDefinition {
 }
 
 /** A live evaluation of one playbook for one asset (money fields stripped). */
+/** Why a matching setup did not fire this tick. `null` = it fires. */
+export type FireBlocker = "cooldown" | "predicate";
+
+/**
+ * The ENGINE's alert cadence — not a position. A setup whose predicate still
+ * matches can be locked because the alert already went out.
+ */
+export interface CooldownState {
+  locked: boolean;
+  /** Unix epoch SECONDS of the last alert. */
+  last_fire_ts: number | null;
+  /** Unix epoch SECONDS at which the lock lifts. */
+  locked_until_ts: number | null;
+  seconds_remaining: number | null;
+}
+
+/** A condition that does NOT match right now. Actuals are public market readings. */
+export interface FailedPredicate {
+  field: string | null;
+  op: string | null;
+  expected: string | number | boolean | Array<string | number> | null;
+  actual: string | number | boolean | Array<string | number> | null;
+}
+
+/**
+ * The SHAPE of the trade intent — never prices or sizes in currency.
+ * `levels_source` says whether exits came from real structure or the
+ * geometric fallback.
+ */
+export interface IntentShape {
+  action: string | null;
+  exits_type: string | null;
+  levels_source: string | null;
+}
+
 export interface FiringResult {
   playbook_id: string;
   /** The playbook's own conditions match the live data. */
@@ -80,6 +115,20 @@ export interface FiringResult {
   structure_blocked: boolean;
   /** Suppressed by resolution (e.g. a higher-priority setup won). */
   suppressed: boolean;
+  /** Which playbook won instead. Present since schema playbook_view_v2. */
+  suppressed_by?: string | null;
+  /**
+   * Why a matching setup is not firing. `null` means it fires this tick.
+   * Present since playbook_view_v2 — without it, a setup whose predicate still
+   * matches but that already alerted reads as if it were actionable.
+   */
+  fire_blocked_by?: FireBlocker | null;
+  /** Alert-cadence state. Present since playbook_view_v2. */
+  cooldown?: CooldownState | null;
+  /** Up to 3 conditions that do not match. Present since playbook_view_v2. */
+  failed_predicates?: FailedPredicate[];
+  /** Intent shape only. Present since playbook_view_v2. */
+  intent?: IntentShape | null;
   structure_gate: { vote: StructureVote | null; reason: string | null };
   /** Risk-gate verdict. null if not evaluated. A setup can be firing yet gate-blocked —
    *  performance is tracked both with and without the gate. */
@@ -90,10 +139,12 @@ export interface FiringResult {
 
 export interface PlaybookResponse {
   ok: boolean;
-  schema: "playbook_view_v1";
+  schema: "playbook_view_v2";
   source: "live" | "unavailable";
   /** Number of ACTIVE playbooks (paused/retired excluded). */
   count: number;
+  /** Epoch ms at which THIS feed was built (proxy cache stamp). */
+  generated_at?: number;
   /** ISO timestamp of the upstream daemon evaluation — shared with the cockpit feed so
    *  the two surfaces stay in sync. Present on a live response. */
   evaluated_at?: string;

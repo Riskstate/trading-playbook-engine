@@ -53,11 +53,21 @@ class PlaybookClient:
 
     @staticmethod
     def firing_now(data: Dict[str, Any], asset: str) -> List[Dict[str, Any]]:
-        """The setups ACTIVELY firing for an asset: would_fire and neither
-        suppressed nor structure-blocked (i.e. all three engines agree)."""
+        """The setups ACTUALLY actionable for an asset: the conditions match,
+        no engine vetoed it, and it is not sitting in alert cooldown.
+
+        The cooldown check landed in 0.2.0. Before that this returned setups
+        whose predicate still matched but whose alert had already gone out --
+        they read as actionable when they were not. On a pre-playbook_view_v2
+        response ``fire_blocked_by`` is absent and this degrades to the old
+        behaviour.
+        """
         results = (data.get("firing") or {}).get(asset, [])
         return [
             f
             for f in results
-            if f.get("would_fire") and not f.get("suppressed") and not f.get("structure_blocked")
+            if f.get("would_fire")
+            and not f.get("suppressed")
+            and not f.get("structure_blocked")
+            and not f.get("fire_blocked_by")
         ]

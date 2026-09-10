@@ -5,7 +5,7 @@ Python client for the **RiskState Trading Playbook Engine** (the *strategist* �
 **Public, no key.**
 
 Full project docs, examples, and the TypeScript client:
-https://github.com/likidodefi/trading-playbook-engine ·
+https://github.com/Riskstate/trading-playbook-engine ·
 https://riskstate.ai/docs/playbook-engine
 
 ```python

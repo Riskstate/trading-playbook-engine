@@ -16,8 +16,8 @@ engine runs server-side; it exposes **strategy and relative conviction only** �
 >
 > | Engine | Role | Answers | Repo |
 > |---|---|---|---|
-> | Risk Engine | Governor | *how much is allowed?* | [docs](https://riskstate.ai/docs/api) · [MCP](https://github.com/likidodefi/riskstate-mcp) |
-> | Market Structure Engine | Navigator | *are we near an inflection?* | [market-structure-engine](https://github.com/likidodefi/market-structure-engine) |
+> | Risk Engine | Governor | *how much is allowed?* | [docs](https://riskstate.ai/docs/api) · [MCP](https://github.com/Riskstate/mcp) |
+> | Market Structure Engine | Navigator | *are we near an inflection?* | [market-structure-engine](https://github.com/Riskstate/market-structure-engine) |
 > | **▸ Trading Playbook Engine** *(this repo)* | **Strategist** | ***is there a setup I trade?*** | you are here |
 >
 > Compose them and you get a complete pre-trade question — *what is the setup, is
@@ -48,10 +48,20 @@ money in it by design** — it is the strategist surface, not a fund dashboard.
   - `would_fire` — the playbook's own conditions match the live data,
   - `structure_gate` — the navigator's vote (`ALIGN` / `NEUTRAL` / `CONFLICT`),
   - `gate_status` — the risk gate's verdict (e.g. `ALLOW` / `RESIZE`),
-  - `size_pct_nav` — proposed conviction as a % of NAV (relative only).
+  - `size_pct_nav` — proposed conviction as a % of NAV (relative only),
+  - `fire_blocked_by` — `"cooldown"`, `"predicate"`, or `null` when it fires,
+  - `cooldown` — alert-cadence state (`locked`, `seconds_remaining`, …),
+  - `failed_predicates` — up to 3 conditions that do not match, with actuals,
+  - `intent` — the trade-intent SHAPE (action, bracket type, level provenance).
 
-A setup is **actively firing** when `would_fire` is true and it is neither
-`suppressed` nor `structure_blocked` — i.e. all three engines agree.
+A setup is **actionable** when `would_fire` is true, it is neither `suppressed`
+nor `structure_blocked`, **and** `fire_blocked_by` is `null`.
+
+That last condition matters more than it looks. A setup whose conditions still
+match can already have alerted, and it then sits in cooldown: firing by
+predicate, but not something to act on again. `firingNow()` / `firing_now()`
+apply all four checks. Before 0.2.0 they applied only the first three and
+returned cooldown-locked setups as if they were actionable.
 
 ## Install
 

@@ -44,9 +44,22 @@ export class PlaybookClient {
 
   /** The setups ACTIVELY firing for an asset: would_fire and neither suppressed
    *  nor structure-blocked (i.e. all three engines agree). */
+  /**
+   * The setups ACTUALLY actionable for an asset: the playbook's conditions
+   * match, no engine vetoed it, and it is not sitting in alert cooldown.
+   *
+   * The cooldown check landed in 0.2.0. Before that this returned setups whose
+   * predicate still matched but whose alert had already gone out — they read as
+   * actionable when they were not. On a pre-`playbook_view_v2` response
+   * `fire_blocked_by` is absent and the filter degrades to the old behaviour.
+   */
   firingNow(data: PlaybookResponse, asset: Asset): FiringResult[] {
     return (data.firing?.[asset] ?? []).filter(
-      (f) => f.would_fire && !f.suppressed && !f.structure_blocked,
+      (f) =>
+        f.would_fire &&
+        !f.suppressed &&
+        !f.structure_blocked &&
+        !f.fire_blocked_by,
     );
   }
 }
