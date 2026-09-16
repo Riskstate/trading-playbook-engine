@@ -23,7 +23,7 @@ engine runs server-side; it exposes **strategy and relative conviction only** �
 > Compose them and you get a complete pre-trade question — *what is the setup, is
 > the terrain right, and how much is permitted* — but each stands alone.
 
-**Live viewer:** https://api.riskstate.ai/playbook · **Docs:** https://riskstate.ai/docs/playbook-engine
+**Live viewer:** https://app.riskstate.ai/playbooks · **Docs:** https://riskstate.ai/docs/playbook-engine
 
 ---
 
